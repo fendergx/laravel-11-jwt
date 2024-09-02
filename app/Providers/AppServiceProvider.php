@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Laravel\Passport\Passport;
+
+Passport::hashClientSecrets();
 
 class AppServiceProvider extends ServiceProvider
 {
