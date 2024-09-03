@@ -7,16 +7,6 @@ use App\Http\Controllers\Controller;
 
 class AuthController extends Controller
 {
-    //comentando constructor para que permita usar rutas, problema debido al middleware
-    // /**
-    //  * Create a new AuthController instance.
-    //  *
-    //  * @return void
-    //  */
-    // public function __construct()
-    // {
-    //     $this->middleware('auth:api', ['except' => ['login']]);
-    // }
 
     /**
      * Get a JWT via given credentials.
@@ -28,7 +18,7 @@ class AuthController extends Controller
         $credentials = request(['email', 'password']);
 
         if (! $token = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
+            return response()->json(['error' => 'No autorizado'], 401);
         }
 
         return $this->respondWithToken($token);
