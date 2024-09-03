@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
+use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
+use PHPOpenSourceSaver\JWTAuth\Exceptions\TokenExpiredException;
+use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
@@ -71,4 +74,36 @@ class AuthController extends Controller
             'expires_in' => auth()->factory()->getTTL() * 60
         ]);
     }
+
+    /**
+     * Verificar el tiempo restante del token.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function checkTokenExpiry(Request $request)
+    {
+        $request->validate([
+            'token' => 'required|string',
+        ]);
+    
+        try {
+            // Obtener el token desde el cuerpo de la solicitud
+            $token = $request->input('token');
+            // Obtener los datos del token
+            $payload = JWTAuth::setToken($token)->getPayload();
+            // Calcular el tiempo restante
+            $exp = $payload->get('exp');
+            $remainingTime = $exp - now()->timestamp;
+    
+            return response()->json([
+                'tiempo_restante_segundos' => $remainingTime,
+            ]);
+    
+        } catch (TokenExpiredException $e) {
+            return response()->json(['error' => 'Token expirado'], 401);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'No se pudo verificar el token'], 400);
+        }
+    }
+    
 }
