@@ -32,10 +32,55 @@ class AuthController extends Controller
      *
      * @return \Illuminate\Http\JsonResponse
      */
-    public function me()
+    public function me(Request $request)
     {
+        // Validar el token usando la función validateToken
+        //$validationResponse = $this->validateToken($request);
+    
+        // Si la validación devuelve un error (JsonResponse), lo retornamos
+        /*if ($validationResponse instanceof \Illuminate\Http\JsonResponse) {
+            return $validationResponse; // Devolver el error si ocurre
+        }*/
+    
+        // Si el token es válido, retornar la información del usuario
         return response()->json(auth()->user());
     }
+    
+    protected function validateToken(Request $request)
+{
+    // Extraer el token desde el request
+    $token = $request->input('token') ?? $request->bearerToken();
+
+    // Validar si el token está presente
+    if (!$token) {
+        return response()->json([
+            'error' => 'Token not provided',
+            'code' => 400
+        ], 400);
+    }
+
+    try {
+        // Establecer el token y autenticar al usuario
+        JWTAuth::setToken($token);
+        $user = JWTAuth::authenticate();
+
+        if (!$user) {
+            return response()->json([
+                'error' => 'User not found',
+                'code' => 8000
+            ], 404);
+        }
+
+        return $user; // Devolver el usuario si todo está bien
+
+    } catch (TokenExpiredException $e) {
+        return response()->json(['error' => 'Token expired', 'code' => 401], 401);
+    } catch (TokenInvalidException $e) {
+        return response()->json(['error' => 'Invalid token', 'code' => 401], 401);
+    } catch (JWTException $e) {
+        return response()->json(['error' => 'Token error', 'code' => 500], 500);
+    }
+}
 
     /**
      * Log the user out (Invalidate the token).
